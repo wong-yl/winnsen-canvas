@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Winnsen Product Canvas</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23007aff'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial' font-size='34' font-weight='700' fill='white'%3EW%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">W</span>
+          <div>
+            <strong>Winnsen Product Canvas</strong>
+            <span>产品设计 · 需求 · 界面 · 品审 · 素材 · 视频</span>
+          </div>
+        </div>
+
+        <nav class="project-tabs" aria-label="项目">
+          <button class="tab active" type="button">智能柜品审</button>
+          <button class="tab" type="button">售卖机方案</button>
+          <button class="tab" type="button">客户定制</button>
+        </nav>
+
+        <div class="top-actions">
+          <button id="commandBtn" type="button">命令中心</button>
+          <label class="search">
+            <span>搜索</span>
+            <input id="searchInput" type="search" placeholder="产品、客户、界面、问题、素材" />
+          </label>
+          <span class="status" id="statusText">已准备</span>
+          <button id="saveBtn" type="button">保存</button>
+          <button id="importBtn" type="button">导入</button>
+          <button id="exportBtn" type="button">导出</button>
+          <button id="resetBtn" type="button">重置</button>
+          <button class="primary" id="reportBtn" type="button">生成评审包</button>
+          <input id="importInput" type="file" accept="application/json,.json" hidden />
+          <input id="catalogCsvInput" type="file" accept=".csv,text/csv" hidden />
+        </div>
+      </header>
+
+      <aside class="sidebar">
+        <section>
+          <h2>工作区</h2>
+          <button class="nav-item active" type="button" data-focus="all">全部画布</button>
+          <button class="nav-item" type="button" data-focus="product">产品项目</button>
+          <button class="nav-item" type="button" data-focus="brief">客户需求</button>
+          <button class="nav-item" type="button" data-focus="flow">界面流程</button>
+          <button class="nav-item" type="button" data-focus="review">品审问题</button>
+          <button class="nav-item" type="button" data-focus="knowledge">知识沉淀</button>
+          <button class="nav-item" type="button" data-focus="asset">图库模型</button>
+          <button class="nav-item" type="button" data-focus="video">视频脚本</button>
+        </section>
+
+        <section>
+          <h2>产品线</h2>
+          <div class="library-list">
+            <button type="button" data-template="parcel">Parcel Locker</button>
+            <button type="button" data-template="laundry">Laundry Locker</button>
+            <button type="button" data-template="flower">Flower Vending</button>
+            <button type="button" data-template="charging">Charging Locker</button>
+            <button type="button" data-template="food">Food / Pharmacy</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>方案模板</h2>
+          <div class="scenario-list">
+            <button type="button" data-scenario="structure-review">新品结构品审</button>
+            <button type="button" data-scenario="customer-custom">客户定制方案</button>
+            <button type="button" data-scenario="video-planning">视频素材规划</button>
+          </div>
+        </section>
+
+        <section class="metrics">
+          <h2>当前项目</h2>
+          <dl>
+            <div>
+              <dt>产品卡</dt>
+              <dd id="productCount">0</dd>
+            </div>
+            <div>
+              <dt>需求</dt>
+              <dd id="briefCount">0</dd>
+            </div>
+            <div>
+              <dt>流程</dt>
+              <dd id="flowCount">0</dd>
+            </div>
+            <div>
+              <dt>问题</dt>
+              <dd id="issueCount">0</dd>
+            </div>
+            <div>
+              <dt>素材</dt>
+              <dd id="assetCount">0</dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+
+      <main class="canvas-shell">
+        <div class="canvas-toolbar">
+          <button id="addProductBtn" type="button">产品卡</button>
+          <button id="addBriefBtn" type="button">需求卡</button>
+          <button id="addFlowBtn" type="button">界面流</button>
+          <button id="addReviewBtn" type="button">品审点</button>
+          <button id="addKnowledgeBtn" type="button">知识卡</button>
+          <button id="addAssetBtn" type="button">素材包</button>
+          <button id="addVideoBtn" type="button">分镜卡</button>
+          <button id="fitBtn" type="button">适配</button>
+          <span id="zoomLabel">100%</span>
+        </div>
+
+        <section class="canvas-viewport" id="viewport" aria-label="无限画布">
+          <div class="canvas-grid"></div>
+          <div class="canvas-stage" id="stage"></div>
+        </section>
+      </main>
+
+      <aside class="inspector">
+        <section class="panel selection-panel">
+          <div class="panel-head">
+            <h2 id="selectionTitle">智能柜产品评审</h2>
+            <span id="selectionType">项目总览</span>
+          </div>
+          <div id="selectionBody" class="selection-body"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>试用启动台</h2>
+            <span id="pilotLaunchSummary">0%</span>
+          </div>
+          <div class="pilot-launch-tools" id="pilotLaunchTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>角色试用路线</h2>
+            <span id="rolePlaybookSummary">0 角色</span>
+          </div>
+          <div class="role-playbook-tools" id="rolePlaybookTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>试用验收中心</h2>
+            <span id="trialAcceptanceSummary">0%</span>
+          </div>
+          <div class="trial-acceptance-tools" id="trialAcceptanceTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>现场反馈</h2>
+            <span id="liveFeedbackSummary">0 条</span>
+          </div>
+          <div class="live-feedback-tools" id="liveFeedbackTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>明早晨会包</h2>
+            <span id="morningBriefSummary">0%</span>
+          </div>
+          <div class="morning-brief-tools" id="morningBriefTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>执行派单</h2>
+            <span id="executionDispatchSummary">0 项</span>
+          </div>
+          <div class="execution-dispatch-tools" id="executionDispatchTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>评审清单</h2>
+            <span>高优先级</span>
+          </div>
+          <ul class="issue-list" id="issueList"></ul>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>品审模板库</h2>
+            <span>结构/设计</span>
+          </div>
+          <div class="review-template-list" id="reviewTemplateList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>客户需求</h2>
+            <span id="briefSummary">0 条</span>
+          </div>
+          <div class="brief-tools" id="briefTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>客户项目库</h2>
+            <span id="customerProjectSummary">0 个项目</span>
+          </div>
+          <div class="customer-project-tools" id="customerProjectTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>报价决策门</h2>
+            <span id="quoteGateSummary">0 项</span>
+          </div>
+          <div class="quote-gate-tools" id="quoteGateTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>知识库沉淀</h2>
+            <span id="knowledgeSummary">0 条</span>
+          </div>
+          <div class="knowledge-tools" id="knowledgeTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>界面设计</h2>
+            <span id="uiFlowSummary">0 条</span>
+          </div>
+          <div class="ui-flow-tools" id="uiFlowTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>产品资料库</h2>
+            <span id="catalogSummary">0 个型号</span>
+          </div>
+          <div class="catalog-tools">
+            <button id="catalogCsvBtn" type="button">导入 CSV</button>
+            <button id="catalogSampleBtn" type="button">下载样例</button>
+            <button id="catalogPortfolioBtn" type="button">组合画布</button>
+            <button id="catalogExportBtn" type="button">导出产品库</button>
+          </div>
+          <div class="catalog-filter">
+            <select id="catalogLineFilter" aria-label="产品线筛选"></select>
+          </div>
+          <div class="catalog-insights" id="catalogInsights"></div>
+          <div class="catalog-import-options" aria-label="CSV 导入选项">
+            <label>
+              <input id="csvAutoReviews" type="checkbox" checked />
+              <span>生成品审清单</span>
+            </label>
+            <label>
+              <input id="csvAutoFlows" type="checkbox" checked />
+              <span>生成界面流程</span>
+            </label>
+            <label>
+              <input id="csvAutoAssets" type="checkbox" checked />
+              <span>生成素材需求</span>
+            </label>
+          </div>
+          <div class="catalog-list" id="productCatalogList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>官网资料种子包</h2>
+            <span id="officialSeedSummary">0 个公开产品</span>
+          </div>
+          <div class="official-seed-tools" id="officialSeedTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>内部资料补齐台</h2>
+            <span id="readinessSummary">0 项</span>
+          </div>
+          <div class="readiness-tools" id="readinessTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>图库 / 模型库</h2>
+            <span>素材包</span>
+          </div>
+          <div class="asset-catalog" id="assetCatalogList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>素材管理</h2>
+            <span id="assetSummary">0 项</span>
+          </div>
+          <div class="asset-tools" id="assetTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>文件入库台账</h2>
+            <span id="fileLedgerSummary">0 文件</span>
+          </div>
+          <div class="file-ledger-tools" id="fileLedgerTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>开源参考 / 产品路线</h2>
+            <span id="roadmapSummary">0 阶段</span>
+          </div>
+          <div class="roadmap-tools" id="roadmapTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>团队协作 / 权限</h2>
+            <span id="teamWorkflowSummary">0 角色</span>
+          </div>
+          <div class="team-workflow-tools" id="teamWorkflowTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>开发规格 / 数据模型</h2>
+            <span id="deliverySpecSummary">0 模块</span>
+          </div>
+          <div class="delivery-spec-tools" id="deliverySpecTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>工作流启动器</h2>
+            <span id="workflowLauncherSummary">0 个入口</span>
+          </div>
+          <div class="workflow-launcher-tools" id="workflowLauncherTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>今夜执行目标</h2>
+            <span id="overnightGoalSummary">0 步</span>
+          </div>
+          <div class="overnight-goal-tools" id="overnightGoalTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>内部试用包</h2>
+            <span id="pilotPackSummary">0 项</span>
+          </div>
+          <div class="pilot-pack-tools" id="pilotPackTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>试用会话记录</h2>
+            <span id="pilotSessionSummary">0 条</span>
+          </div>
+          <div class="pilot-session-tools" id="pilotSessionTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>试用起步导航</h2>
+            <span id="guidedStartSummary">0 步</span>
+          </div>
+          <div class="guided-start-tools" id="guidedStartTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>试用反馈 / 迭代</h2>
+            <span id="pilotFeedbackSummary">0 条</span>
+          </div>
+          <div class="pilot-feedback-tools" id="pilotFeedbackTools"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>视频生成</h2>
+            <span>脚本草案</span>
+          </div>
+          <div class="video-brief" id="videoBrief"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>任务看板</h2>
+            <span id="taskSummary">0 项</span>
+          </div>
+          <div class="task-board" id="taskBoard"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>AI 工作台</h2>
+            <span>设计/品审/视频</span>
+          </div>
+          <div class="prompt-tools">
+            <textarea id="promptOutput" readonly></textarea>
+            <div class="inspector-actions prompt-action-grid" id="aiPromptTools">
+              <button type="button" data-ai-prompt="product">产品设计</button>
+              <button type="button" data-ai-prompt="ui">界面设计</button>
+              <button type="button" data-ai-prompt="review">结构品审</button>
+              <button type="button" data-ai-prompt="asset">素材整理</button>
+              <button type="button" data-ai-prompt="knowledge">知识沉淀</button>
+              <button type="button" data-ai-prompt="video">视频脚本</button>
+              <button type="button" data-ai-prompt="bundle">整套 Prompt</button>
+              <button type="button" data-ai-prompt="node">生成节点</button>
+              <button type="button" data-ai-prompt="export">导出 Prompt</button>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <div class="command-modal" id="commandModal" hidden>
+      <div class="command-card" role="dialog" aria-modal="true" aria-labelledby="commandTitle">
+        <div class="command-head">
+          <div>
+            <h2 id="commandTitle">命令中心</h2>
+            <span id="commandSummary">0 个动作</span>
+          </div>
+          <button id="closeCommandBtn" type="button">关闭</button>
+        </div>
+        <label class="command-search">
+          <span>搜索</span>
+          <input id="commandSearchInput" type="search" placeholder="生成、导出、试用、资料、报告" />
+        </label>
+        <div class="command-list" id="commandList"></div>
+      </div>
+    </div>
+
+    <div class="report-modal" id="reportModal" hidden>
+      <div class="report-card" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+        <div class="report-head">
+          <h2 id="reportTitle">Winnsen 智能柜评审包</h2>
+          <div class="report-actions">
+            <button id="exportReportBtn" type="button">导出 JSON</button>
+            <button id="exportReportMdBtn" type="button">导出 Markdown</button>
+            <button id="closeReportBtn" type="button">关闭</button>
+          </div>
+        </div>
+        <div id="reportContent"></div>
+      </div>
+    </div>
+
+    <script src="./app.js?v=20260609-execution-dispatch"></script>
+  </body>
+</html>
