@@ -2201,6 +2201,8 @@ const engineerQuestions = [
 const workspaceData = loadWorkspace();
 let nodes = workspaceData.nodes;
 let links = workspaceData.links;
+let canvasRenderFrame = 0;
+let viewPersistTimer = 0;
 
 const state = {
   offsetX: workspaceData.view?.offsetX ?? 0,
@@ -2527,7 +2529,7 @@ function statusPriority(status) {
   return "P3";
 }
 
-function render() {
+function renderCanvas() {
   const shown = visibleNodes();
   if (shown.length && !shown.some((node) => node.id === state.selectedId)) {
     state.selectedId = shown[0].id;
@@ -2539,6 +2541,7 @@ function render() {
     if (!shownIds.has(fromId) || !shownIds.has(toId)) return;
     const from = nodes.find((node) => node.id === fromId);
     const to = nodes.find((node) => node.id === toId);
+    if (!from || !to) return;
     const x1 = from.x + 290;
     const y1 = from.y + 80;
     const x2 = to.x;
@@ -2567,6 +2570,25 @@ function render() {
   });
 
   applyTransform();
+}
+
+function scheduleCanvasRender() {
+  if (canvasRenderFrame) return;
+  canvasRenderFrame = requestAnimationFrame(() => {
+    canvasRenderFrame = 0;
+    renderCanvas();
+  });
+}
+
+function scheduleViewPersist(message = "已保存视图") {
+  clearTimeout(viewPersistTimer);
+  viewPersistTimer = setTimeout(() => {
+    persistWorkspace(message);
+  }, 300);
+}
+
+function render() {
+  renderCanvas();
   renderInspector();
   renderTasks();
   renderCounts();
@@ -12924,7 +12946,7 @@ window.addEventListener("mousemove", (event) => {
     const node = nodes.find((item) => item.id === state.dragging.id);
     node.x = state.dragging.nodeX + (event.clientX - state.dragging.startX) / state.scale;
     node.y = state.dragging.nodeY + (event.clientY - state.dragging.startY) / state.scale;
-    render();
+    scheduleCanvasRender();
   }
 
   if (state.panning) {
@@ -12956,6 +12978,7 @@ viewport.addEventListener(
     state.offsetX = pointerX - worldX * state.scale;
     state.offsetY = pointerY - worldY * state.scale;
     applyTransform();
+    scheduleViewPersist();
   },
   { passive: false },
 );
