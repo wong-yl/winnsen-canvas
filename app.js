@@ -642,6 +642,7 @@ function catalogFields(id) {
 }
 
 const storageKey = "winnsen-product-canvas-v1";
+const simpleModeKey = "winnsen-product-canvas-simple-mode";
 
 const defaultNodes = [
   {
@@ -2214,6 +2215,7 @@ const state = {
   focus: "all",
   search: "",
   catalogLine: "all",
+  simpleMode: localStorage.getItem(simpleModeKey) !== "off",
 };
 
 const viewport = document.getElementById("viewport");
@@ -2235,6 +2237,9 @@ const statusText = document.getElementById("statusText");
 const taskBoard = document.getElementById("taskBoard");
 const taskSummary = document.getElementById("taskSummary");
 const promptOutput = document.getElementById("promptOutput");
+const simpleModeBtn = document.getElementById("simpleModeBtn");
+const beginnerTools = document.getElementById("beginnerTools");
+const beginnerSummary = document.getElementById("beginnerSummary");
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -2346,6 +2351,117 @@ function persistWorkspace(message = "已保存") {
 
 function setStatus(message) {
   statusText.textContent = message;
+}
+
+function applySimpleMode() {
+  document.body.classList.toggle("simple-mode", state.simpleMode);
+  if (!simpleModeBtn) return;
+  simpleModeBtn.textContent = state.simpleMode ? "打开完整模式" : "回到简单模式";
+  simpleModeBtn.setAttribute("aria-pressed", String(state.simpleMode));
+}
+
+function beginnerState() {
+  const hasTrial = nodes.some((node) => node.category === "试用验收中心");
+  const hasMorning = morningBriefNodes().length > 0;
+  const hasDispatch = executionDispatchNodes().length > 0;
+  const feedbackCount = liveFeedbackNodes().length;
+  const steps = [
+    {
+      title: "一键铺开",
+      detail: hasTrial && hasMorning && hasDispatch ? "试用、晨会、派单已生成" : "生成试用、晨会、派单",
+      done: hasTrial && hasMorning && hasDispatch,
+    },
+    {
+      title: "记录反馈",
+      detail: feedbackCount ? `已有 ${feedbackCount} 条现场反馈` : "写一句真实观察",
+      done: feedbackCount > 0,
+    },
+    {
+      title: "看报告",
+      detail: "打开评审包确认重点",
+      done: hasTrial || hasMorning || hasDispatch,
+    },
+    {
+      title: "导出给 Win",
+      detail: "下载 JSON 后到 Win 电脑导入",
+      done: false,
+    },
+  ];
+  return {
+    steps,
+    ready: steps.filter((step) => step.done).length,
+    feedbackCount,
+    nodeCount: nodes.length,
+  };
+}
+
+function renderBeginnerTools() {
+  if (!beginnerTools) return;
+  const status = beginnerState();
+  beginnerSummary.textContent = state.simpleMode ? `${status.ready}/4` : "完整模式";
+  beginnerTools.innerHTML = `
+    <div class="beginner-status">
+      <strong>${status.ready ? "已经可以继续试用" : "先从一键铺开开始"}</strong>
+      <span>${status.nodeCount} 张卡 · ${status.feedbackCount} 条反馈</span>
+    </div>
+    <div class="beginner-actions">
+      <button class="beginner-primary" type="button" data-beginner-action="start">一键铺开</button>
+      <button type="button" data-beginner-action="feedback">记录反馈</button>
+      <button type="button" data-beginner-action="report">看报告</button>
+      <button type="button" data-beginner-action="export">导出给 Win</button>
+    </div>
+    <div class="beginner-checklist">
+      ${status.steps
+        .map(
+          (step, index) => `
+            <div class="${step.done ? "is-done" : ""}">
+              <b>${index + 1}</b>
+              <span>
+                <strong>${escapeHtml(step.title)}</strong>
+                <em>${escapeHtml(step.detail)}</em>
+              </span>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function toggleSimpleMode() {
+  state.simpleMode = !state.simpleMode;
+  localStorage.setItem(simpleModeKey, state.simpleMode ? "on" : "off");
+  applySimpleMode();
+  renderBeginnerTools();
+  setStatus(state.simpleMode ? "已回到简单模式" : "已打开完整模式");
+}
+
+function runBeginnerStart() {
+  addTrialAcceptanceWorkspace();
+  addMorningBriefWorkspace("已生成明早晨会包");
+  addExecutionDispatchWorkspace("已生成执行派单看板");
+  fitView();
+  setStatus("已铺开工作区，下一步记录一条反馈");
+  renderBeginnerTools();
+}
+
+function focusLiveFeedback() {
+  const tools = document.getElementById("liveFeedbackTools");
+  const panel = tools?.closest(".panel");
+  const input = document.getElementById("liveFeedbackObservationInput");
+  panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.setTimeout(() => input?.focus(), 180);
+  setStatus("在现场反馈里写一句观察，再点记录反馈");
+}
+
+function runBeginnerReport() {
+  showReport();
+  setStatus("评审包已打开");
+}
+
+function runBeginnerExport() {
+  exportWorkspace();
+  setStatus("已导出 JSON，Win 电脑导入即可继续");
 }
 
 function escapeHtml(value) {
@@ -2589,7 +2705,9 @@ function scheduleViewPersist(message = "已保存视图") {
 
 function render() {
   renderCanvas();
+  applySimpleMode();
   renderInspector();
+  renderBeginnerTools();
   renderTasks();
   renderCounts();
   renderPilotLaunchTools();
@@ -13016,6 +13134,15 @@ document.getElementById("addVideoBtn").addEventListener("click", () =>
 );
 document.getElementById("fitBtn").addEventListener("click", fitView);
 document.getElementById("commandBtn").addEventListener("click", openCommandCenter);
+simpleModeBtn.addEventListener("click", toggleSimpleMode);
+beginnerTools.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-beginner-action]");
+  if (!button) return;
+  if (button.dataset.beginnerAction === "start") runBeginnerStart();
+  if (button.dataset.beginnerAction === "feedback") focusLiveFeedback();
+  if (button.dataset.beginnerAction === "report") runBeginnerReport();
+  if (button.dataset.beginnerAction === "export") runBeginnerExport();
+});
 document.getElementById("closeCommandBtn").addEventListener("click", closeCommandCenter);
 commandSearchInput.addEventListener("input", renderCommandCenter);
 commandList.addEventListener("click", (event) => {

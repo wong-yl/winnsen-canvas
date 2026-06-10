@@ -26,6 +26,7 @@
 
         <div class="top-actions">
           <button id="commandBtn" type="button">命令中心</button>
+          <button id="simpleModeBtn" class="mode-toggle" type="button" aria-pressed="true">打开完整模式</button>
           <label class="search">
             <span>搜索</span>
             <input id="searchInput" type="search" placeholder="产品、客户、界面、问题、素材" />
@@ -129,6 +130,14 @@
           <div id="selectionBody" class="selection-body"></div>
         </section>
 
+        <section class="panel beginner-panel">
+          <div class="panel-head">
+            <h2>从这里开始</h2>
+            <span id="beginnerSummary">4 步</span>
+          </div>
+          <div class="beginner-tools" id="beginnerTools"></div>
+        </section>
+
         <section class="panel">
           <div class="panel-head">
             <h2>试用启动台</h2>
@@ -153,7 +162,7 @@
           <div class="trial-acceptance-tools" id="trialAcceptanceTools"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel simple-core-panel">
           <div class="panel-head">
             <h2>现场反馈</h2>
             <span id="liveFeedbackSummary">0 条</span>
@@ -385,7 +394,7 @@
           <div class="video-brief" id="videoBrief"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel simple-core-panel">
           <div class="panel-head">
             <h2>任务看板</h2>
             <span id="taskSummary">0 项</span>
@@ -447,6 +456,6 @@
       </div>
     </div>
 
-    <script src="./app.js?v=20260609-canvas-qa-fix"></script>
+    <script src="./app.js?v=20260610-simple-mode"></script>
   </body>
 </html>

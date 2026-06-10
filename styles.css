@@ -128,7 +128,8 @@ button {
 .library-list button,
 .nav-item,
 .report-head button,
-.inspector-actions button {
+.inspector-actions button,
+.beginner-actions button {
   border: 1px solid var(--line);
   background: var(--glass-strong);
   color: var(--ink);
@@ -151,6 +152,14 @@ button {
   gap: 10px;
   margin-left: auto;
   min-width: 0;
+}
+
+.mode-toggle {
+  min-width: 116px;
+  border-color: rgba(0, 122, 255, 0.24) !important;
+  background: rgba(0, 122, 255, 0.08) !important;
+  color: #0066cc !important;
+  white-space: nowrap;
 }
 
 .status {
@@ -694,6 +703,96 @@ button {
   line-height: 18px;
 }
 
+.beginner-tools {
+  display: grid;
+  gap: 12px;
+}
+
+.beginner-status {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.beginner-status strong {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.beginner-status span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.beginner-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.beginner-actions button {
+  min-height: 42px;
+  padding: 6px 10px;
+  line-height: 16px;
+  white-space: normal;
+}
+
+.beginner-actions .beginner-primary {
+  background: linear-gradient(180deg, #0a84ff, #007aff) !important;
+  border-color: var(--brand) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.2) !important;
+}
+
+.beginner-checklist {
+  display: grid;
+  gap: 9px;
+}
+
+.beginner-checklist div {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+}
+
+.beginner-checklist b {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 122, 255, 0.12);
+  color: #0066cc;
+  font-size: 12px;
+}
+
+.beginner-checklist span,
+.beginner-checklist strong,
+.beginner-checklist em {
+  display: block;
+  min-width: 0;
+}
+
+.beginner-checklist strong {
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.beginner-checklist em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 17px;
+}
+
+.beginner-checklist .is-done b {
+  background: rgba(52, 199, 89, 0.16);
+  color: var(--green);
+}
+
 .meta-panel {
   display: grid;
   gap: 7px;
@@ -727,6 +826,7 @@ button {
 }
 
 .catalog-list,
+.beginner-tools,
 .pilot-launch-tools,
 .role-playbook-tools,
 .trial-acceptance-tools,
@@ -2979,6 +3079,7 @@ button {
 .nav-item,
 .report-head button,
 .inspector-actions button,
+.beginner-actions button,
 .asset-actions button,
 .pilot-launch-actions button,
 .role-playbook-actions button,
@@ -3027,6 +3128,7 @@ button {
 .nav-item:hover,
 .report-head button:hover,
 .inspector-actions button:hover,
+.beginner-actions button:hover,
 .asset-actions button:hover,
 .pilot-launch-actions button:hover,
 .role-playbook-actions button:hover,
@@ -3273,9 +3375,62 @@ button {
   }
 }
 
+.simple-mode .app {
+  grid-template-columns: 176px minmax(0, 1fr) 352px;
+}
+
+.simple-mode .project-tabs,
+.simple-mode #commandBtn,
+.simple-mode #saveBtn,
+.simple-mode #importBtn,
+.simple-mode #resetBtn,
+.simple-mode .top-actions .search,
+.simple-mode .canvas-toolbar {
+  display: none;
+}
+
+.simple-mode .brand {
+  flex: 1;
+}
+
+.simple-mode .top-actions {
+  margin-left: auto;
+}
+
+.simple-mode .sidebar section:not(.metrics) {
+  display: none;
+}
+
+.simple-mode .sidebar {
+  padding-top: 18px;
+}
+
+.simple-mode .inspector {
+  display: block;
+}
+
+.simple-mode .inspector > .panel:not(.beginner-panel):not(.simple-core-panel) {
+  display: none;
+}
+
+.simple-mode .beginner-panel {
+  border-color: rgba(0, 122, 255, 0.18);
+}
+
 @media (max-width: 1120px) {
   .app {
     grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .simple-mode .app {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .simple-mode .inspector {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    padding: 12px;
   }
 
   .inspector {
@@ -3296,6 +3451,10 @@ button {
   .app {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .simple-mode .app {
+    grid-template-columns: 1fr;
   }
 
   .topbar {
